@@ -1,0 +1,15 @@
+{
+  "name": "huffyman",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx tsx --watch --test test/**/*.ts",
+    "dev": "npx tsx watch src/huffyman.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.12.1"
+  }
+}
