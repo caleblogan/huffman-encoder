@@ -1,31 +1,39 @@
 import fs from 'fs';
 import { PrefixCodeTable, buildPrefixCodeTable, buildTree } from './trees';
+import { encode } from './codec';
 
 function main() {
-    const inFilename = process.argv[2];
-    const outFilename = process.argv[3];
+    const option: 'e' | 'd' = process.argv[2].replace('-', '') as 'e' | 'd';
+    if (!['e', 'd'].includes(option)) {
+        throw new Error('Invalid option. Must be "-e" or "-d"')
+    }
+    const inFilename = process.argv[3];
+    const outFilename = process.argv[4];
     if (!inFilename || !outFilename) {
         printUsage();
         process.exit(1);
     }
-    try {
-        const text = fs.readFileSync(inFilename, 'utf8');
-        const frequencies = buildFrequencyMap(text)
-        const tree = buildTree(frequencies)
-        const codeTable = buildPrefixCodeTable(tree)
-
-        writeCodeTable(codeTable, outFilename)
-    } catch (error) {
-        if (error instanceof Error && "code" in error) {
-            console.error('Error reading/writing file:', error.message);
-            process.exit(1);
+    if (option === 'e') {
+        try {
+            const text = fs.readFileSync(inFilename, 'utf8');
+            const frequencies = buildFrequencyMap(text)
+            const tree = buildTree(frequencies)
+            const codeTable = buildPrefixCodeTable(tree)
+            writeCodeTable(codeTable, outFilename)
+            writeEncodedText(encode(text, codeTable), text.length, outFilename)
+        } catch (error) {
+            if (error instanceof Error && "code" in error) {
+                console.error('Error reading/writing file:', error.message);
+                process.exit(1);
+            }
+            throw error;
         }
-        throw error;
+    } else {
+        console.log('Decoding not implemented yet');
     }
 }
 
-function encode(text: string, codeTable: PrefixCodeTable) {
-}
+
 
 // Header:
 // 4 bytes: size of the code table
@@ -38,13 +46,14 @@ function writeCodeTable(codeTable: PrefixCodeTable, filename: string) {
     size.writeUInt32LE(codeBuffer.length)
     fh.write(size)
     fh.write(codeBuffer)
+}
 
-    // Get size
-    // const read = fs.createReadStream(filename)
-    // read.on('data', (chunk) => {
-    //     const buff = Buffer.from(chunk)
-    //     console.log(buff.readUint32LE())
-    // })
+function writeEncodedText(encodedText: Buffer, originalSize: number, filename: string) {
+    const fh = fs.createWriteStream(filename, { flags: 'a' })
+    const sizeBuffer = Buffer.alloc(4)
+    sizeBuffer.writeUInt32LE(originalSize)
+    fh.write(sizeBuffer)
+    fh.write(encodedText)
 }
 
 if (__filename === process.argv[1]) {
