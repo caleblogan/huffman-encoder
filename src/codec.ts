@@ -23,16 +23,19 @@ export function pack(codes: string): Buffer {
     return buffer
 }
 
-export function decode(encodedText: Buffer, prefixTable: ReversePrefixCodeTable, size: number): string {
+export function decode(encodedText: Buffer, prefixTable: ReversePrefixCodeTable, originalSize: number): string {
     const result: string[] = []
 
-    const bitString = unpack(encodedText, size)
+    const bitString = unpack(encodedText, originalSize)
     let charBuffer = ""
     for (const bit of bitString) {
         charBuffer += bit
         if (prefixTable.has(charBuffer)) {
             result.push(prefixTable.get(charBuffer)!)
             charBuffer = ""
+        }
+        if (result.length === originalSize) {
+            break
         }
     }
 
@@ -44,5 +47,5 @@ function unpack(buffer: Buffer, size: number): string {
     for (let byte of buffer) {
         bits.push(byte.toString(2).padStart(8, '0'))
     }
-    return bits.join("").slice(0, size)
+    return bits.join("")
 }
