@@ -1,4 +1,4 @@
-import { PrefixCodeTable } from "./trees"
+import { PrefixCodeTable, ReversePrefixCodeTable } from "./trees"
 
 export function encode(text: string, codeTable: PrefixCodeTable): Buffer {
     const codes = []
@@ -21,4 +21,28 @@ export function pack(codes: string): Buffer {
         buffer.writeUInt8(parseInt(codes.slice(i, i + 8).padEnd(8, '0'), 2), i / 8)
     }
     return buffer
+}
+
+export function decode(encodedText: Buffer, prefixTable: ReversePrefixCodeTable, size: number): string {
+    const result: string[] = []
+
+    const bitString = unpack(encodedText, size)
+    let charBuffer = ""
+    for (const bit of bitString) {
+        charBuffer += bit
+        if (prefixTable.has(charBuffer)) {
+            result.push(prefixTable.get(charBuffer)!)
+            charBuffer = ""
+        }
+    }
+
+    return result.join("")
+}
+
+function unpack(buffer: Buffer, size: number): string {
+    const bits: string[] = []
+    for (let byte of buffer) {
+        bits.push(byte.toString(2).padStart(8, '0'))
+    }
+    return bits.join("").slice(0, size)
 }

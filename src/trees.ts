@@ -32,6 +32,7 @@ export function buildTree(frequencies: Map<string, number>): Node {
 /**  Binary string of 0 or more 1's and 0's. Example: "001" */
 export type Code = string
 export type PrefixCodeTable = Map<string, Code>
+export type ReversePrefixCodeTable = Map<Code, string>
 
 // TODO: Replace recursive function with iterative function for better performance
 export function buildPrefixCodeTable(root: Node): PrefixCodeTable {
